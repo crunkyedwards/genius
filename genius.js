@@ -76,10 +76,13 @@ var genius = {};
             },
             map: function (array, callback) {
                 var copy = [];
-                for (var i = 0; i < array.length; i++) {
-                    copy[i] = callback.call(this, array[i]);
-                }
-                return copy;
+                // Handle case where array is null
+				if (array) {
+	                for (var i = 0; i < array.length; i++) {
+	                    copy[i] = callback.call(this, array[i]);
+	                }
+        		}               
+			    return copy;
             },
             isNullOrUndefined: function (value) {
                 return typeof value == "undefined" || (typeof value == "object" && !value);
@@ -476,7 +479,9 @@ var genius = {};
 
         function throwItType(value, options, nullable) {
             if (typeof value == options.typeName) return;
-            if ((options.nullable || nullable) && genius.utils.isNullOrUndefined(value)) return;
+            // Sometimes this throws when value is a string, other times when value is an object
+		    // This handles both cases. Not sure if this is the best way to handle it.
+		    if (typeof value() == options.typeName) return;            if ((options.nullable || nullable) && genius.utils.isNullOrUndefined(value)) return;
             throw new TypeError("Value must be of type " + options.typeName + (options.nullable ? ", null, or undefined" : ""));
         };
         function throwItClass(value, options, nullable) {
