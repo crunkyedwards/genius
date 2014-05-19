@@ -76,11 +76,8 @@ var genius = {};
             },
             map: function (array, callback) {
                 var copy = [];
-                // Handle case where array is null
-		if (array) {
-                    for (var i = 0; i < array.length; i++) {
-                        copy[i] = callback.call(this, array[i]);
-                    }
+                for (var i = 0; i < array.length; i++) {
+                    copy[i] = callback.call(this, array[i]);
                 }
                 return copy;
             },
@@ -158,7 +155,8 @@ var genius = {};
             this.ajax = {
                 transformToCamelCase: genius.utils.accessor(false),
                 parseJson: genius.utils.accessor(function (response) {
-                    return genius.config.ajax.parseJs().call(this, JSON.parse(response));
+                	var obj = typeof response === 'string' ? JSON.parse(response) : response;
+               		return genius.config.ajax.parseJs().call(this, obj);
                 }),
                 parseJs: genius.utils.accessor(function (response) {
                     return response;
@@ -166,7 +164,8 @@ var genius = {};
                 reset: function () {
                     this.transformToCamelCase(false);
                     this.parseJson(function (response) {
-                        return genius.config.ajax.parseJs().call(this, JSON.parse(response));
+                    	var obj = typeof response === 'string' ? JSON.parse(response) : response;
+                        return genius.config.ajax.parseJs().call(this, obj);
                     });
                     this.parseJs(function (response) {
                         return response;
@@ -477,9 +476,6 @@ var genius = {};
 
         function throwItType(value, options, nullable) {
             if (typeof value == options.typeName) return;
-            // Sometimes this throws when value is a string, other times when value is an object
-	    // This handles both cases. Not sure if this is the best way to handle it.
-	    if (typeof value() == options.typeName) return;
             if ((options.nullable || nullable) && genius.utils.isNullOrUndefined(value)) return;
             throw new TypeError("Value must be of type " + options.typeName + (options.nullable ? ", null, or undefined" : ""));
         };
@@ -687,7 +683,7 @@ var genius = {};
                                 url = provider.createRoute(this.url(), this, false),
                                 _self = this;
                             innerConfig.isLoading = true;
-                            genius.box.HttpBackend()[innerConfig.isNew ? "post" : "put"](url, this.toJson())
+                            var promise = genius.box.HttpBackend()[innerConfig.isNew ? "post" : "put"](url, this.toJson())
                                 .done(function (response) {
                                     response = genius.config.ajax.parseJson().call(this, response);
                                     setUtils = server;
@@ -703,6 +699,7 @@ var genius = {};
                                     innerConfig.isDirty = innerConfig.isNew = false;
                                 })
                                 .always(function () { innerConfig.isLoading = false; });
+                            return promise;
                         }
                     }
                 });
@@ -1178,6 +1175,7 @@ var genius = {};
         }());
         genius.box.set("FakeHttpBackend", function () { return new FakeBackend(); }).singleton();
     }());
+
 
     //Real Backend
     (function () {
