@@ -632,6 +632,27 @@ describe("A deferred", function () {
 });
 
 describe("Resources", function () {
+    describe("#extend()", function () {
+        it ("should inherit properties", function () {
+            var Joe = genius.Resource.extend({
+                joe : genius.types.string(),
+                
+                callJoe : function() {
+                    alert('Hey, '+this.joe()+'!');
+                }
+            });
+
+            var JoeExtended = Joe.extend({
+                sally : genius.types.string()
+            });
+
+            var joe = new JoeExtended();
+
+            expect(function () { joe.joe("Joe"); }).not.toThrow();
+            expect(function () { joe.callJoe(); }).not.toThrow();
+        });
+    });
+
     it("should allow retrieval of their original options hashes", function () {
         var Class = genius.Resource.extend({});
 

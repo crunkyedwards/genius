@@ -711,6 +711,7 @@ var genius = {};
         };
         var initializing;
         function Resource() { };
+
         Resource.fromJs = function (obj) {
             setUtils = server;
             var resource = new Resource(obj);
@@ -777,6 +778,14 @@ var genius = {};
 
             resourceUtils.buildPrototype(prototype, typeOptions);
 
+            if (!prototype.currentTypeOptions)
+                prototype.currentTypeOptions = typeOptions;
+            else
+                prototype.currentTypeOptions = (function () {
+                    var output = Object.create(prototype.currentTypeOptions);
+                    return genius.utils.extend(prototype.currentTypeOptions, typeOptions);
+                }.call(this));
+
             var instances = {},
                 innerConfig = null;
             function Resource(options) {
@@ -784,7 +793,8 @@ var genius = {};
                     if (typeof this.init == "function")
                         this.init.apply(this, arguments);
                     function Resource() {
-                        resourceUtils.setVarTyping.call(this, typeOptions);
+
+                        resourceUtils.setVarTyping.call(this, this.currentTypeOptions);
                         resourceUtils.populateVars.call(this, options, resourceUtils.getInnerConfig(innerConfig, options));
                         var key;
                         if (key = resourceUtils.getKey(options, typeOptions)) {
